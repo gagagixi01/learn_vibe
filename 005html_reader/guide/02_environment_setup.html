@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>02. 创建正式项目目录并准备 Python 环境</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <button class="menu-button" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">Vibecoding Reader</div>
+      <nav><a class="nav-link nav-home" href="../index.html">课程首页</a>
+<a class="nav-link " href="../article.html">长文导读</a>
+<div class="nav-section">分节指南</div>
+<a class="nav-link " href="README.html">指南 README</a>
+<a class="nav-link " href="00_overview.html">00 开始之前</a>
+<a class="nav-link " href="01_vibecoding_modes.html">01 Vibecoding 方法论</a>
+<a class="nav-link active" href="02_environment_setup.html">02 创建正式项目目录并准备 Python 环境</a>
+<a class="nav-link " href="03_project_spec_sdd.html">03 用 SDD 写出最小项目规格</a>
+<a class="nav-link " href="04_task_breakdown.html">04 把规格拆成可执行任务</a>
+<a class="nav-link " href="05_backend_fastapi.html">05 创建最小 FastAPI 后端</a>
+<a class="nav-link " href="06_database_sqlite.html">06 接入 SQLite 并创建 tasks 表</a>
+<a class="nav-link " href="07_core_api_tdd.html">07 用轻量 TDD 实现核心任务 API</a>
+<a class="nav-link " href="08_frontend_jinja2.html">08 用 Jinja2 做出最小可用页面</a>
+<a class="nav-link " href="09_debugging_with_claude_code.html">09 出现错误时，怎样和 Claude Code CLI 一起调试</a>
+<a class="nav-link " href="10_review_and_reflection.html">10 Review 项目，并把它讲清楚</a>
+<a class="nav-link " href="11_next_steps.html">11 做一个小扩展，把方法完整用一遍</a></nav>
+    </aside>
+    <main class="content">
+      <header class="page-header">
+        <h1>02. 创建正式项目目录并准备 Python 环境</h1>
+        <div class="source-label">Source: guide/02_environment_setup.md</div>
+        <nav class="page-links"><a href="01_vibecoding_modes.html">上一页：01 Vibecoding 方法论</a>
+<a href="03_project_spec_sdd.html">下一页：03 用 SDD 写出最小项目规格</a></nav>
+      </header>
+      <article class="markdown-body">
+<h2 id="预计用时">预计用时</h2>
+<p>20-30 分钟。</p>
+<h2 id="本节位置">本节位置</h2>
+<p>约 4 小时核心路线（00-10）的第 2 个学习单元。从这一节开始，我们正式进入全栈项目 <code>task-vibe/</code>。后续所有 FastAPI、SQLite、Jinja2、API 测试、页面调试和项目复盘，都会围绕这个目录展开。</p>
+<p>请先记住一个非常重要的边界：<code>01</code> 里的 <code>.venv</code> 在 <code>vibecoding-method-lab/.venv</code>，它只服务于小函数 TDD 方法实验；本节要创建新的 <code>.venv</code>，位置是 <code>task-vibe/.venv</code>，它服务于正式 FastAPI 全栈项目。两个虚拟环境不是同一个，不能混用。不要因为 <code>01</code> 已经创建过 <code>.venv</code>，就跳过本节的环境准备。</p>
+<p>本节还会调整一个关键顺序：先创建并激活 <code>task-vibe/.venv</code>，再安装依赖，确认环境正确后，最后启动 <code>Claude Code CLI</code>。这样 Claude 进入项目时，目录和 Python 环境都已经准备好，不会一开始就围绕错误环境生成建议。</p>
+<h2 id="工具使用规则">工具使用规则</h2>
+<p>终端用于创建 <code>task-vibe/</code>、创建并激活 <code>task-vibe/.venv</code>、安装依赖、运行 <code>uvicorn</code>、执行 <code>curl</code>、检查 <code>main.py</code>。<code>Claude Code CLI</code> 只在环境准备完成后使用，用来按明确提示创建最小 <code>main.py</code> 并解释代码。</p>
+<h2 id="学习目标">学习目标</h2>
+<p>完成本节后，你应该能做到 5 件事：</p>
+<ol>
+<li>创建正式项目目录 <code>task-vibe/</code>，并确认自己不在 <code>vibecoding-method-lab/</code>。</li>
+<li>在 <code>task-vibe/</code> 内创建独立虚拟环境 <code>task-vibe/.venv</code>。</li>
+<li>在当前虚拟环境中安装 <code>fastapi</code>、<code>uvicorn</code>、<code>jinja2</code>、<code>pytest</code>、<code>httpx2</code>、<code>python-multipart</code>。</li>
+<li>在正确目录和正确环境中启动 <code>Claude Code CLI</code>。</li>
+<li>创建并运行一个最小 FastAPI 服务，看到精确返回：<code>{"message":"Task Vibe is running"}</code>。</li>
+</ol>
+<p>这节课的重点不是写很多代码，而是建立正式项目的“起跑线”。如果起跑线错了，后面所有步骤都会被影响。目录错了，文件会散落到错误位置；环境错了，依赖可能装到全局 Python；Claude 启动位置错了，它看到的上下文也会错。</p>
+<h2 id="本节产出物">本节产出物</h2>
+<ol>
+<li>一个正式项目目录：<code>task-vibe/</code>。</li>
+<li>一个正式项目虚拟环境：<code>task-vibe/.venv</code>。</li>
+<li>已安装的项目依赖：<code>fastapi</code>、<code>uvicorn</code>、<code>jinja2</code>、<code>pytest</code>、<code>httpx2</code>、<code>python-multipart</code>。</li>
+<li>一个最小 FastAPI 文件：<code>main.py</code>。</li>
+<li>一个能通过 <code>curl</code> 验证的本地服务。</li>
+<li>一张你能看懂的完整实践流程图。</li>
+</ol>
+<h2 id="操作步骤">操作步骤</h2>
+<pre><code class="language-mermaid">flowchart TD
+    A[&quot;创建正式项目目录 task-vibe/&quot;] --&gt; B[&quot;创建并激活 task-vibe/.venv&quot;]
+    B --&gt; C[&quot;安装 FastAPI、Uvicorn、Jinja2、pytest、httpx2、python-multipart&quot;]
+    C --&gt; D[&quot;验证依赖来自当前环境&quot;]
+    D --&gt; E[&quot;启动 Claude Code CLI&quot;]
+    E --&gt; F[&quot;创建最小 FastAPI 后端&quot;]
+    F --&gt; G[&quot;写 SDD 规格 docs/spec.md&quot;]
+    G --&gt; H[&quot;拆分任务 docs/tasks.md&quot;]
+    H --&gt; I[&quot;添加 SQLite tasks 表&quot;]
+    I --&gt; J[&quot;用轻量 TDD 实现核心 API&quot;]
+    J --&gt; K[&quot;添加 Jinja2 页面&quot;]
+    K --&gt; L[&quot;调试、Review、继续扩展&quot;]
+</code></pre>
+<h3 id="第-1-步-创建正式项目目录">第 1 步：创建正式项目目录</h3>
+<p>先创建 <code>task-vibe/</code>，并进入这个目录：</p>
+<pre><code class="language-bash">mkdir task-vibe
+cd task-vibe
+</code></pre>
+<p>确认当前位置：</p>
+<pre><code class="language-bash">pwd
+</code></pre>
+<p>预期输出应该以 <code>task-vibe</code> 结尾。如果输出里还是 <code>vibecoding-method-lab</code>，说明你还停留在 <code>01</code> 的方法实验目录。请先切换到正确目录，再继续本节。</p>
+<h3 id="第-2-步-创建并激活正式项目虚拟环境">第 2 步：创建并激活正式项目虚拟环境</h3>
+<p>在 <code>task-vibe/</code> 目录里创建新的 <code>.venv</code>：</p>
+<pre><code class="language-bash">python -m venv .venv
+source .venv/bin/activate
+</code></pre>
+<p>这一节的 <code>.venv</code> 和 <code>01</code> 的 <code>.venv</code> 不同。<code>01</code> 的环境路径是：</p>
+<pre><code class="language-text">vibecoding-method-lab/.venv
+</code></pre>
+<p>本节的环境路径是：</p>
+<pre><code class="language-text">task-vibe/.venv
+</code></pre>
+<p>它们分别属于不同目录、不同练习、不同目标。<code>vibecoding-method-lab/.venv</code> 只需要 <code>pytest</code>，因为它只跑小函数测试；<code>task-vibe/.venv</code> 需要 <code>fastapi</code>、<code>uvicorn</code>、<code>jinja2</code>、<code>pytest</code>、<code>httpx2</code>、<code>python-multipart</code>，因为它要支撑一个最小全栈项目、后续 <code>TestClient</code> 接口测试，以及表单提交场景。</p>
+<h3 id="第-3-步-安装正式项目依赖">第 3 步：安装正式项目依赖</h3>
+<p>确认虚拟环境已经激活后，安装依赖：</p>
+<pre><code class="language-bash">pip install fastapi uvicorn jinja2 pytest httpx2 python-multipart
+</code></pre>
+<p>这里每个依赖都有作用。<code>FastAPI</code> 用来写后端应用和路由；<code>uvicorn</code> 用来启动本地开发服务；<code>Jinja2</code> 用来渲染后面的 HTML 页面；<code>pytest</code> 用来支撑后续轻量 TDD；<code>httpx2</code> 用来支撑 <code>fastapi.testclient.TestClient</code> 背后的 HTTP 测试客户端；<code>python-multipart</code> 用来支撑后面基于表单的提交数据解析。如果缺少它，做到页面表单章节时，可能看到与 <code>multipart/form-data</code> 相关的依赖报错。</p>
+<h3 id="第-4-步-确认依赖来自当前环境">第 4 步：确认依赖来自当前环境</h3>
+<p>安装完成后，不要急着启动 Claude。先确认依赖能被当前 Python 环境找到：</p>
+<pre><code class="language-bash">python -m pip show fastapi pytest httpx2 python-multipart
+</code></pre>
+<p>预期输出会包含 <code>Name: fastapi</code>、<code>Name: pytest</code>、<code>Name: httpx2</code> 和 <code>Name: python-multipart</code>。如果没有看到这些信息，通常说明你没有激活 <code>task-vibe/.venv</code>，或者依赖装到了其他 Python 环境里。</p>
+<p>这一步是新人很容易忽略的检查。很多“代码明明对但运行不了”的问题，其实不是代码问题，而是环境问题。先把环境确认好，后面和 Claude 协作时会少很多误判。</p>
+<h3 id="第-5-步-启动-claude-code-cli">第 5 步：启动 Claude Code CLI</h3>
+<p>环境准备好之后，再在 <code>task-vibe/</code> 目录内启动 <code>Claude Code CLI</code>：</p>
+<pre><code class="language-bash">claude
+</code></pre>
+<p>如果你的本机 Claude Code CLI 入口命令不是 <code>claude</code>，请使用自己的启动方式。关键是：必须在 <code>task-vibe/</code> 目录里启动，而且启动前已经完成 <code>.venv</code> 和依赖准备。</p>
+<p>启动后，先不要让 Claude 生成完整系统。请先让它确认当前项目状态，并只协助创建最小 FastAPI 骨架。</p>
+<p>Claude Code 提示词示例：</p>
+<pre><code class="language-text">我们现在在 task-vibe 正式项目目录里。这个目录和上一节的 vibecoding-method-lab 不同。当前已经创建并激活 task-vibe/.venv，并安装 fastapi、uvicorn、jinja2、pytest、httpx2、python-multipart。请作为我的 Python 全栈练习搭档，先不要生成完整项目，只帮我确认当前环境适合开始 FastAPI + SQLite + Jinja2 的最小任务管理系统练习，并指导我创建最小 main.py。
+</code></pre>
+<p>这个提示词有两个边界：第一，它告诉 Claude 当前目录和环境已经准备好；第二，它明确要求不要生成完整项目。我们只要最小 FastAPI 骨架，不要登录、Docker、React、部署，也不要提前写 <code>docs/spec.md</code>。<code>SDD</code> 规格会在 <code>03</code> 单独完成。</p>
+<h3 id="第-6-步-让-claude-创建最小-fastapi-服务">第 6 步：让 Claude 创建最小 FastAPI 服务</h3>
+<p>现在已经在 <code>task-vibe/</code> 目录内启动了 <code>Claude Code CLI</code>，而且 <code>.venv</code> 和依赖都已经准备好。接下来使用 Claude 创建 <code>main.py</code>，不要让它生成完整项目。</p>
+<p>Claude Code 提示词示例：</p>
+<pre><code class="language-text">请在当前 task-vibe/ 目录下创建一个最小 FastAPI 应用文件 main.py。要求：
+1. 只创建 main.py；
+2. 不创建数据库；
+3. 不创建 templates；
+4. 不生成完整项目结构；
+5. 首页 GET / 返回 {&quot;message&quot;: &quot;Task Vibe is running&quot;}。
+创建后请解释 main.py 每一行代码的作用。
+</code></pre>
+<p>完成后检查：</p>
+<pre><code class="language-bash">ls
+cat main.py
+</code></pre>
+<p>你应该看到当前目录里出现 <code>main.py</code>。检查本地文件并决定：它只需要满足本节最小 FastAPI 服务目标，不要求和下面参考修改示例完全一致。</p>
+<p>参考修改示例：</p>
+<pre><code class="language-python">from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get(&quot;/&quot;)
+def read_root():
+    return {&quot;message&quot;: &quot;Task Vibe is running&quot;}
+</code></pre>
+<p>确认文件内容正确后，激活同一个 <code>task-vibe/.venv</code>。</p>
+<pre><code class="language-bash">cd task-vibe
+source .venv/bin/activate
+python -m pip show uvicorn fastapi httpx2 python-multipart
+python -m uvicorn main:app --reload
+</code></pre>
+<p>服务启动后，让这个终端保持运行。再打开另一个终端窗口执行验证。<code>curl</code> 本身不依赖 Python venv，但这里仍然激活同一个环境，可以让上下文保持一致，后续调试更清楚：</p>
+<pre><code class="language-bash">cd task-vibe
+source .venv/bin/activate
+curl http://127.0.0.1:8000/
+</code></pre>
+<p>如果输出是 <code>{"message":"Task Vibe is running"}</code>，说明正式项目的最小后端入口已经跑通。</p>
+<h2 id="输入输出对照">输入输出对照</h2>
+<table>
+<thead>
+<tr>
+<th>输入</th>
+<th>预期输出</th>
+<th>学生要比较什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pwd</code></td>
+<td>当前目录以 <code>task-vibe</code> 结尾</td>
+<td>是否真的离开了 <code>vibecoding-method-lab/</code>，进入正式项目目录。</td>
+</tr>
+<tr>
+<td><code>python -m venv .venv</code></td>
+<td>当前目录出现 <code>task-vibe/.venv</code></td>
+<td>是否为正式项目创建了独立环境，而不是复用 <code>01</code> 的环境。</td>
+</tr>
+<tr>
+<td><code>pip install fastapi uvicorn jinja2 pytest httpx2 python-multipart</code></td>
+<td>依赖安装完成，没有明显报错</td>
+<td>是否把正式项目依赖装进当前环境。</td>
+</tr>
+<tr>
+<td><code>python -m pip show fastapi pytest httpx2 python-multipart</code></td>
+<td>能看到 <code>Name: fastapi</code>、<code>Name: pytest</code>、<code>Name: httpx2</code> 和 <code>Name: python-multipart</code></td>
+<td>是否能证明依赖来自当前 Python 环境。</td>
+</tr>
+<tr>
+<td><code>claude</code></td>
+<td>在 <code>task-vibe/</code> 内启动 <code>Claude Code CLI</code></td>
+<td>是否在正确目录、正确环境准备完成后再启动 Claude。</td>
+</tr>
+<tr>
+<td>Claude 创建 <code>main.py</code></td>
+<td>当前目录出现 <code>main.py</code>，且只包含最小 FastAPI 应用</td>
+<td>是否让 Claude 聚焦创建单个文件，而不是生成完整项目。</td>
+</tr>
+<tr>
+<td><code>cat main.py</code></td>
+<td>能看到 <code>GET /</code> 返回 <code>{"message": "Task Vibe is running"}</code></td>
+<td>是否回到终端检查了 Claude 的产物。</td>
+</tr>
+<tr>
+<td>退出 Claude 后重新激活 <code>.venv</code></td>
+<td><code>python -m pip show uvicorn fastapi httpx2 python-multipart</code> 能显示包信息</td>
+<td>是否已经回到普通终端，并确认当前环境可用。</td>
+</tr>
+<tr>
+<td><code>python -m uvicorn main:app --reload</code></td>
+<td>服务启动并监听本地端口</td>
+<td>是否使用当前虚拟环境里的 <code>uvicorn</code> 启动服务。</td>
+</tr>
+<tr>
+<td><code>curl http://127.0.0.1:8000/</code></td>
+<td><code>{"message":"Task Vibe is running"}</code></td>
+<td>最小 FastAPI 服务是否真的可访问。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="验收标准">验收标准</h2>
+<p>运行或检查：</p>
+<pre><code class="language-bash">pwd
+python -m pip show fastapi pytest httpx2 python-multipart
+python -m uvicorn main:app --reload
+curl http://127.0.0.1:8000/
+</code></pre>
+<p>通过标准：</p>
+<ul>
+<li>当前目录是 <code>task-vibe/</code>，不是 <code>vibecoding-method-lab/</code>。</li>
+<li>当前虚拟环境是 <code>task-vibe/.venv</code>，不是 <code>vibecoding-method-lab/.venv</code>。</li>
+<li>你已经创建并激活 <code>task-vibe/.venv</code>。</li>
+<li>你已经安装 <code>fastapi</code>、<code>uvicorn</code>、<code>jinja2</code>、<code>pytest</code>、<code>httpx2</code>、<code>python-multipart</code>。</li>
+<li><code>python -m pip show fastapi pytest httpx2 python-multipart</code> 能显示包信息。</li>
+<li>你是在环境准备完成后才启动 <code>Claude Code CLI</code>。</li>
+<li>Claude 创建 <code>main.py</code> 后，你已经回到普通终端，并重新激活了 <code>task-vibe/.venv</code>。</li>
+<li>你使用 <code>python -m uvicorn main:app --reload</code> 启动服务，而不是依赖全局 <code>uvicorn</code>。</li>
+<li><code>curl</code> 返回精确 JSON：<code>{"message":"Task Vibe is running"}</code>。</li>
+<li>你知道下一节 <code>03</code> 才开始正式写 <code>SDD</code> 项目规格。</li>
+</ul>
+<p>需要停下处理：</p>
+<ul>
+<li>如果你还在 <code>vibecoding-method-lab/</code> 里继续做正式项目，先切回正确目录。</li>
+<li>如果你复用了 <code>01</code> 的 <code>.venv</code>，或者依赖装到了全局 Python，先重新建立本节环境。</li>
+<li>如果你先启动 Claude，后来才发现 Python 环境没有准备好，先把环境补完整再继续。</li>
+<li>如果服务启动失败，或者 <code>curl</code> 返回 404、500、连接失败，先不要进入下一节；把当前命令、完整报错、<code>main.py</code> 内容发给 <code>Claude Code CLI</code>，只解决本节问题。</li>
+</ul>
+<h2 id="常见卡点">常见卡点</h2>
+<ul>
+<li>误以为 <code>01</code> 已经创建过 <code>.venv</code>，所以 <code>02</code> 不需要再创建。实际上 <code>01</code> 的环境只属于小函数实验，<code>02</code> 必须有自己的正式项目环境。</li>
+<li>忘记先 <code>cd task-vibe</code> 就创建 <code>.venv</code>，导致虚拟环境出现在错误目录。</li>
+<li>激活了错误目录下的 <code>.venv</code>，例如仍然激活 <code>vibecoding-method-lab/.venv</code>。</li>
+<li>依赖安装到了全局 Python，而不是 <code>task-vibe/.venv</code>。</li>
+<li>先启动 Claude，再让它帮你处理环境问题，导致对话一开始就被错误上下文污染。</li>
+<li>Claude 创建 <code>main.py</code> 后，没有退出 Claude 或新开终端，就把 shell 命令输进 Claude 交互界面。</li>
+<li>新开终端后忘记重新 <code>cd task-vibe</code> 和 <code>source .venv/bin/activate</code>。</li>
+<li>使用裸 <code>uvicorn main:app --reload</code>，结果调用到全局环境里的 <code>uvicorn</code>。</li>
+<li><code>uvicorn</code> 服务已经启动，但在同一个终端里继续输入 <code>curl</code>。应该另开一个终端执行 <code>curl</code>。</li>
+<li>端口不是 <code>8000</code>，或者服务没有启动成功，就直接访问接口。</li>
+</ul>
+      </article>
+      <footer class="footer">Created by Walter and Codex at 2026-06-10 00:01.</footer>
+    </main>
+  </div>
+  <script src="../assets/reader.js"></script>
+</body>
+</html>

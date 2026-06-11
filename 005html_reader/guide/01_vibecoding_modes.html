@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>01. Vibecoding 方法论：用一个小函数完整走一遍</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <button class="menu-button" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">Vibecoding Reader</div>
+      <nav><a class="nav-link nav-home" href="../index.html">课程首页</a>
+<a class="nav-link " href="../article.html">长文导读</a>
+<div class="nav-section">分节指南</div>
+<a class="nav-link " href="README.html">指南 README</a>
+<a class="nav-link " href="00_overview.html">00 开始之前</a>
+<a class="nav-link active" href="01_vibecoding_modes.html">01 Vibecoding 方法论</a>
+<a class="nav-link " href="02_environment_setup.html">02 创建正式项目目录并准备 Python 环境</a>
+<a class="nav-link " href="03_project_spec_sdd.html">03 用 SDD 写出最小项目规格</a>
+<a class="nav-link " href="04_task_breakdown.html">04 把规格拆成可执行任务</a>
+<a class="nav-link " href="05_backend_fastapi.html">05 创建最小 FastAPI 后端</a>
+<a class="nav-link " href="06_database_sqlite.html">06 接入 SQLite 并创建 tasks 表</a>
+<a class="nav-link " href="07_core_api_tdd.html">07 用轻量 TDD 实现核心任务 API</a>
+<a class="nav-link " href="08_frontend_jinja2.html">08 用 Jinja2 做出最小可用页面</a>
+<a class="nav-link " href="09_debugging_with_claude_code.html">09 出现错误时，怎样和 Claude Code CLI 一起调试</a>
+<a class="nav-link " href="10_review_and_reflection.html">10 Review 项目，并把它讲清楚</a>
+<a class="nav-link " href="11_next_steps.html">11 做一个小扩展，把方法完整用一遍</a></nav>
+    </aside>
+    <main class="content">
+      <header class="page-header">
+        <h1>01. Vibecoding 方法论：用一个小函数完整走一遍</h1>
+        <div class="source-label">Source: guide/01_vibecoding_modes.md</div>
+        <nav class="page-links"><a href="00_overview.html">上一页：00 开始之前</a>
+<a href="02_environment_setup.html">下一页：02 创建正式项目目录并准备 Python 环境</a></nav>
+      </header>
+      <article class="markdown-body">
+<h2 id="预计用时">预计用时</h2>
+<p>20-25 分钟。</p>
+<h2 id="本节位置">本节位置</h2>
+<p>这是约 4 小时核心路线（00-10）的第 1 个学习单元。本节会从 <code>00</code> 的概念地图进入第一次真实练习，但它不是正式全栈项目。我们会创建一个临时实验目录 <code>vibecoding-method-lab/</code>，在里面启动 <code>Claude Code CLI</code>，用一个很小的 Python 函数练习 <code>SDD -&gt; TDD -&gt; 小步实现 -&gt; Review</code>。正式任务管理系统会从 <code>02</code> 的 <code>task-vibe/</code> 目录开始。</p>
+<p>这样安排的原因很简单：在进入全栈项目前，学生先用一个小到能完全看懂的函数体验完整工作流。你会先写规格，再写测试，先看到测试失败，再写最小实现让测试通过，最后让 Claude 做 Review。后面做 FastAPI、SQLite、Jinja2 时，只是把同一套动作放大到项目级别。</p>
+<h2 id="工具使用规则">工具使用规则</h2>
+<p>终端用于创建 <code>vibecoding-method-lab/</code>、创建 <code>.venv</code>、安装 <code>pytest</code>、运行 <code>pytest</code>、检查文件和输出。<code>Claude Code CLI</code> 用于检查规格、辅助创建小范围代码、解释失败原因和做 Review。</p>
+<h2 id="学习目标">学习目标</h2>
+<p>学完本节，你应该能理解并亲手体验 5 个动作。</p>
+<p>第一，理解 <code>Prompt-Driven Coding</code> 的用途：它适合快速起草想法，但不能作为最终交付方式。
+第二，理解 <code>SDD</code>：先写清楚规格，避免 AI 自己扩展需求。
+第三，理解轻量 <code>TDD</code>：先写测试或预期行为，再写实现。
+第四，理解小步迭代：一次只完成一个行为，不把多个修改混在一起。
+第五，理解 <code>Review</code>：代码通过测试后，还要让 AI 帮你解释、检查、复盘，让代码从“能跑”变成“能讲清楚”。</p>
+<p>本节练习的函数叫 <code>normalize_task_title(title: str) -&gt; str</code>。它做的事情很小：把任务标题前后的空格去掉，把中间连续多个空格压缩成一个空格，如果标题全是空格，就返回空字符串。这个函数看起来简单，但非常适合演示方法论，因为它有清楚输入、清楚输出、清楚边界，也很容易用测试验证。</p>
+<h2 id="本节产出物">本节产出物</h2>
+<p>本节结束时，你应该得到下面 5 个产出物：</p>
+<ol>
+<li>一个临时练习目录：<code>vibecoding-method-lab/</code>。</li>
+<li>一个规格文件：<code>spec.md</code>。</li>
+<li>一个测试文件：<code>test_task_title.py</code>。</li>
+<li>一个实现文件：<code>task_title.py</code>。</li>
+<li>一段 Review 笔记：<code>review_note.md</code>。</li>
+</ol>
+<p>请注意，<code>vibecoding-method-lab/</code> 只是方法论实验目录，不是后面全栈项目的目录。后面 <code>02</code> 会重新创建正式项目目录 <code>task-vibe/</code>。如果你把这两个目录混在一起，后面的学习会变乱。</p>
+<h2 id="操作步骤">操作步骤</h2>
+<h3 id="第-1-步-创建方法实验目录">第 1 步：创建方法实验目录</h3>
+<p>先在你想放练习文件的位置打开终端，创建一个独立目录：</p>
+<pre><code class="language-bash">mkdir vibecoding-method-lab
+cd vibecoding-method-lab
+</code></pre>
+<p>确认你已经进入实验目录：</p>
+<pre><code class="language-bash">pwd
+</code></pre>
+<p>预期输出里应该以 <code>vibecoding-method-lab</code> 结尾。这个检查很重要，因为后面的所有文件都应该放在这个临时目录里，而不是放进正式项目 <code>task-vibe/</code>。</p>
+<h3 id="第-2-步-创建虚拟环境并安装-pytest">第 2 步：创建虚拟环境并安装 pytest</h3>
+<p>本节会运行 <code>pytest test_task_title.py</code>，所以需要先准备一个只属于这个实验目录的 Python 虚拟环境。这样做有两个好处：第一，不污染你电脑上的全局 Python；第二，学生能清楚知道 <code>pytest</code> 是从哪里来的。</p>
+<p>在 <code>vibecoding-method-lab/</code> 目录内执行：</p>
+<pre><code class="language-bash">python -m venv .venv
+source .venv/bin/activate
+pip install pytest
+</code></pre>
+<p>安装完成后，可以确认 <code>pytest</code> 已经可用：</p>
+<pre><code class="language-bash">pytest --version
+</code></pre>
+<p>预期输出会显示 pytest 的版本号，例如：</p>
+<pre><code class="language-text">pytest 8.x.x
+</code></pre>
+<p>如果你看到 <code>pytest: command not found</code>，通常说明虚拟环境没有激活，或者 <code>pip install pytest</code> 没有成功。先不要继续写测试，回到这一步修好环境。</p>
+<h3 id="第-3-步-启动-claude-code-cli">第 3 步：启动 Claude Code CLI</h3>
+<p>在 <code>vibecoding-method-lab/</code> 目录内启动 <code>Claude Code CLI</code>：</p>
+<pre><code class="language-bash">claude
+</code></pre>
+<p>启动后，先不要让 Claude 写代码。你要先告诉它本节的边界：</p>
+<pre><code class="language-text">我正在做一个 Python 新人的 vibecoding 方法论实验。本节只练一个小函数 normalize_task_title，不做 FastAPI，不做数据库，不创建正式项目。请你作为我的 Claude Code CLI 编程搭档，帮助我按 SDD -&gt; TDD -&gt; 小步实现 -&gt; Review 的顺序完成练习。
+</code></pre>
+<p>这段话的目的是建立边界。AI 很容易在没有边界时“热心过头”，给你加项目结构、加复杂工具、加你现在不需要的功能。好的 vibecoding 第一件事不是写代码，而是告诉 AI：这次只做什么，不做什么。</p>
+<h3 id="第-4-步-用-sdd-写规格">第 4 步：用 SDD 写规格</h3>
+<p>在 <code>vibecoding-method-lab/</code> 目录下先让 Claude Code 创建 <code>spec.md</code>，写下这个函数的规格。你的任务不是盲目接受，而是看懂它有没有把范围说清楚，尤其是“本次不做”有没有挡住多余功能。</p>
+<p>Claude Code 提示词示例：</p>
+<pre><code class="language-text">请在当前 vibecoding-method-lab/ 目录下创建 spec.md，只写 normalize_task_title 这个小函数的规格。
+
+要求：
+1. 写清楚目标、函数签名、规则、本次不做；
+2. 规则只包含去掉前后空格、压缩中间空白、全空格返回空字符串；
+3. 明确不做标题长度检查、emoji 处理、标点处理、数据库或 Web 功能；
+4. 不要创建测试文件，不要创建实现文件。
+</code></pre>
+<p>参考修改示例：</p>
+<pre><code class="language-markdown"># normalize_task_title 规格
+
+## 目标
+
+把用户输入的任务标题整理成稳定、可保存、可显示的格式。
+
+## 函数签名
+
+normalize_task_title(title: str) -&gt; str
+
+## 规则
+
+1. 去掉标题前后的空格。
+2. 把中间连续多个空格压缩成一个空格。
+3. 如果标题全是空格，返回空字符串。
+
+## 本次不做
+
+1. 不检查标题长度。
+2. 不处理 emoji。
+3. 不处理中英文标点。
+4. 不连接数据库。
+</code></pre>
+<p>打开新窗口，检查：</p>
+<pre><code class="language-bash">cat spec.md
+</code></pre>
+<p>这里就是 <code>SDD</code> 的核心：先写规格，再写代码。规格不需要很长，但必须能回答“这个函数到底做什么”和“这个函数不做什么”。对新人来说，“不做什么”尤其重要，因为它能防止 AI 把小练习扩展成大工程。</p>
+<h3 id="第-5-步-用-tdd-先写测试">第 5 步：用 TDD 先写测试</h3>
+<p>接下来不要写实现，让 Claude Code 在 <code>vibecoding-method-lab/</code> 目录下创建测试文件 <code>test_task_title.py</code>。这一步只定义预期行为，故意让测试先失败。</p>
+<p>Claude Code 提示词示例：</p>
+<pre><code class="language-text">请根据 spec.md 创建 test_task_title.py，只写 normalize_task_title 的 pytest 测试。
+
+要求：
+1. 测试前后空格会被去掉；
+2. 测试中间连续多个空格会压缩成一个空格；
+3. 测试全是空格时返回空字符串；
+4. 只创建或修改 test_task_title.py；
+5. 不要创建 task_title.py，不要写实现代码。
+</code></pre>
+<p>参考修改示例：</p>
+<pre><code class="language-python">from task_title import normalize_task_title
+
+
+def test_normalize_task_title_trims_spaces():
+    assert normalize_task_title(&quot;  学习 Claude Code  &quot;) == &quot;学习 Claude Code&quot;
+
+
+def test_normalize_task_title_collapses_inner_spaces():
+    assert normalize_task_title(&quot;学习   Claude   Code&quot;) == &quot;学习 Claude Code&quot;
+
+
+def test_normalize_task_title_handles_empty_title():
+    assert normalize_task_title(&quot;   &quot;) == &quot;&quot;
+</code></pre>
+<p>完成后检查：</p>
+<pre><code class="language-bash">cat test_task_title.py
+</code></pre>
+<p>这一步是 <code>TDD</code> 的 Red 阶段。Red 的意思不是“代码错了很糟糕”，而是“我们先看到一个预期中的失败”。这个失败证明测试确实在检查一个还没有实现的行为。如果你还没写实现，测试却通过了，那说明测试没有真正测到你想要的东西。</p>
+<p>运行测试：</p>
+<pre><code class="language-bash">python -m pytest test_task_title.py
+</code></pre>
+<p>预期结果是失败。你可能看到类似信息：</p>
+<pre><code class="language-text">ModuleNotFoundError: No module named 'task_title'
+</code></pre>
+<p>这是一个好失败。它说明测试已经开始寻找 <code>task_title.py</code>，但实现文件还不存在。</p>
+<h3 id="第-6-步-写最小实现">第 6 步：写最小实现</h3>
+<p>现在让 Claude Code 创建 <code>task_title.py</code>，只写刚好能让测试通过的最小实现。</p>
+<p>Claude Code 提示词示例：</p>
+<pre><code class="language-text">现在请创建 task_title.py，只实现 normalize_task_title(title: str) -&gt; str。
+
+要求：
+1. 让 test_task_title.py 里的 3 个测试通过；
+2. 使用尽量简单的 Python 写法；
+3. 不要增加标题长度校验；
+4. 不要创建类、数据库、FastAPI 或其他项目结构；
+5. 修改后告诉我应该运行哪条 pytest 命令验证。
+</code></pre>
+<p>参考修改示例：</p>
+<pre><code class="language-python">def normalize_task_title(title: str) -&gt; str:
+    return &quot; &quot;.join(title.strip().split())
+</code></pre>
+<p>完成后检查：</p>
+<pre><code class="language-bash">cat task_title.py
+</code></pre>
+<p>这段实现很短，但它刚好满足规格。<code>title.strip()</code> 会去掉前后空格，<code>split()</code> 会把字符串按空白分开，并自动忽略连续空格，<code>" ".join(...)</code> 会用一个普通空格把它们重新连接起来。如果输入是 <code>"   "</code>，<code>strip()</code> 后是空字符串，<code>split()</code> 得到空列表，最后 <code>join</code> 返回空字符串。</p>
+<p>这就是 TDD 的 Green 阶段：写最少的代码，让测试通过。这里不要顺手加标题长度校验，不要加数据库，不要加 Web 接口。那些都不在规格里。新人的一个常见误区是“既然已经开始写了，不如多加一点”。但在 AI 协作里，多加一点很容易变成多出十个你看不懂的文件。</p>
+<p>再次运行测试：</p>
+<pre><code class="language-bash">pytest test_task_title.py
+</code></pre>
+<p>预期输出里应该看到：</p>
+<pre><code class="language-text">3 passed
+</code></pre>
+<p>判断测试是否通过时，不要只盯着数字，而要看“是否全部通过”和“测试是否仍在本节范围内”：</p>
+<ul>
+<li>情况 1：看到 <code>3 passed</code>，说明本节要求的 3 个基础测试都通过，可以进入下一步。</li>
+<li>情况 2：看到 <code>4 passed</code>、<code>5 passed</code> 或更多，并且没有 <code>failed</code>、<code>error</code>、<code>xfailed</code> 等失败信号，也可以进入下一步。但要先确认额外测试仍然符合 <code>spec.md</code>，比如仍然只检查空白整理行为，没有加入标题长度、数据库、FastAPI 或其他范围外内容。</li>
+<li>情况 3：如果出现失败或报错，先不要进入下一步。把完整报错、<code>test_task_title.py</code>、<code>task_title.py</code> 发给 Claude，让它只分析这个错误，不要重写整个练习。</li>
+</ul>
+<p>如果出现报错，可以在 Claude Code CLI 中输入：</p>
+<pre><code class="language-text">这是我运行 pytest test_task_title.py 的完整报错。请先解释最可能的原因，再给最小修复方案。不要重写整个练习，也不要添加本节规格之外的功能。
+</code></pre>
+<h3 id="第-7-步-做一次小步迭代">第 7 步：做一次小步迭代</h3>
+<p>现在你已经完成了最小实现，可以体验一次“小步迭代”。小步迭代不是加很多功能，而是在已经通过测试的基础上，增加一个非常小的新行为。</p>
+<p>例如，你可以新增一个测试：如果标题中包含换行和制表符，也应该被整理成普通空格。</p>
+<p>Claude Code 提示词示例：</p>
+<pre><code class="language-text">请在 test_task_title.py 里只新增一个测试：标题中包含 tab 和换行时，也应该被整理成普通空格。
+
+要求：
+1. 只修改 test_task_title.py；
+2. 不要修改 task_title.py；
+3. 不要新增其他行为；
+4. 修改后告诉我应该重新运行哪条测试命令。
+</code></pre>
+<p>参考修改示例：</p>
+<pre><code class="language-python">def test_normalize_task_title_handles_tabs_and_newlines():
+    assert normalize_task_title(&quot;学习\tClaude\nCode&quot;) == &quot;学习 Claude Code&quot;
+</code></pre>
+<p>完成后检查：</p>
+<pre><code class="language-bash">cat test_task_title.py
+python -m pytest test_task_title.py
+</code></pre>
+<p>你可能会发现测试直接通过，因为 <code>split()</code> 本来就会处理多种空白字符。这也是一个重要学习点：有时候好的最小实现已经覆盖了更多合理行为。此时你不需要为了“显得做了迭代”而强行改代码。小步迭代的目标是保持行为清楚，而不是制造复杂度。</p>
+<p>如果你想继续练习，可以让 Claude 帮你解释为什么这个新增测试也能通过：</p>
+<pre><code class="language-text">请解释为什么 normalize_task_title 使用 strip、split、join 后，也能处理 tab 和换行。请用 Python 新人能理解的语言说明，不要修改代码。
+</code></pre>
+<h3 id="第-8-步-让-claude-做-review">第 8 步：让 Claude 做 Review</h3>
+<p>测试通过不代表学习结束。现在让 Claude Code 根据当前三个文件创建 <code>review_note.md</code>，记录一次 Review。你仍然要逐句读懂，如果有一句你解释不出来，就让 Claude 改成更朴素的表达。</p>
+<p>Claude Code 提示词示例：</p>
+<pre><code class="language-text">请 review 当前练习中的 spec.md、test_task_title.py 和 task_title.py，并创建 review_note.md。
+
+请只关注 4 件事：
+1. 规格是否清楚；
+2. 测试是否覆盖了核心行为；
+3. 实现是否足够简单；
+4. 是否有过度设计。
+
+请不要引入 FastAPI、数据库或正式项目结构。
+review_note.md 要用 Python 新人能看懂的短句，不要写得像正式代码审计报告。
+</code></pre>
+<p>参考修改示例：</p>
+<pre><code class="language-markdown"># Review 笔记
+
+## 规格是否清楚
+
+规格清楚，因为它说明了函数目标、函数签名、三条规则和本次不做什么。
+
+## 测试是否覆盖核心行为
+
+测试覆盖了前后空格、连续空格、空标题，以及 tab/newline 的情况。
+
+## 实现是否足够简单
+
+实现只有一行，使用 strip、split、join，符合当前规格。
+
+## 是否有过度设计
+
+没有引入数据库、Web 框架或复杂类结构，适合 Python 新人理解。
+</code></pre>
+<p>完成后检查：</p>
+<pre><code class="language-bash">cat review_note.md
+</code></pre>
+<p>Review 的意义是把“我照着做完了”变成“我知道为什么这样做”。如果你能讲清楚这个小函数的规格、测试、实现和边界，后面进入全栈项目时就不会只是在复制命令。</p>
+<h3 id="第-9-步-把每一步和方法论对应起来">第 9 步：把每一步和方法论对应起来</h3>
+<p>完成代码以后，不要急着关闭终端。请停下来，把刚才的动作和方法论一一对应。这个动作看起来像复盘，其实是把“我做了什么”变成“我学会了什么”。</p>
+<p>当你创建 <code>spec.md</code> 时，你做的是 <code>SDD</code>。它不是为了写一份漂亮文档，而是为了先把范围固定住。一个小函数也需要规格，因为规格能告诉你哪些行为应该实现，哪些行为暂时不要碰。比如本节明确“不检查标题长度”，这会阻止 Claude 自作主张加入额外校验。</p>
+<p>当你创建 <code>test_task_title.py</code>，并在没有实现文件时运行 <code>pytest</code>，你做的是 <code>TDD</code> 的 Red 阶段。Red 阶段最重要的不是“失败”，而是“失败得正确”。如果失败原因是 <code>ModuleNotFoundError</code>，说明测试正在寻找还没有实现的模块；如果失败原因是语法错误，说明你还没真正进入行为验证，需要先修正测试文件。</p>
+<p>当你写下 <code>task_title.py</code> 的一行实现，并让测试通过，你做的是 Green 阶段。Green 阶段的关键是“刚好够用”。你不需要把函数写得很复杂，也不需要创建类。AI 很容易给出更完整、更工程化的答案，但本节的目标是让新人理解行为，不是展示架构能力。</p>
+<p>当你新增 tab 和换行的测试时，你做的是小步迭代。它只增加一个可验证行为，而且这个行为和原规格非常接近。好的迭代应该像这样：小、清楚、能验证。如果你一次加入长度校验、数据库保存、接口调用，那就不是迭代，而是范围失控。</p>
+<p>当你写 <code>review_note.md</code> 时，你做的是 <code>Review</code>。Review 不只是让 Claude 夸代码好不好，而是检查规格、测试、实现之间是否一致。对新人来说，Review 最重要的价值是训练表达：你能不能说出为什么这个实现符合规格，为什么测试能证明它，为什么当前没有过度设计。</p>
+<h3 id="第-10-步-学会读输出-而不是只看通过或失败">第 10 步：学会读输出，而不是只看通过或失败</h3>
+<p>很多新人运行命令时，只看最后一行：通过就开心，失败就慌。但在 <code>Vibecoding</code> 里，你必须学会读输出。输出是你和系统沟通的方式，也是你和 Claude 协作的事实依据。</p>
+<p>当你第一次运行 <code>pytest test_task_title.py</code>，如果看到 <code>ModuleNotFoundError: No module named 'task_title'</code>，这不是坏消息。它说明测试文件已经被 pytest 找到了，测试也已经尝试导入目标函数，只是实现还不存在。这个失败正好符合 TDD 的预期。</p>
+<p>如果你看到的是 <code>SyntaxError</code>，那就不是理想 Red。它说明 Python 连测试文件都解析不了。此时你应该先检查冒号、缩进、引号，而不是让 Claude 直接写实现。</p>
+<p>如果你看到的是 <code>AssertionError</code>，说明实现已经存在，但输出和预期不一致。这个时候最适合把“输入值、实际输出、预期输出”一起发给 Claude，让它分析差异。例如：输入是 <code>"学习   Claude   Code"</code>，预期是 <code>"学习 Claude Code"</code>，实际却还是多个空格。这能帮助 Claude 精准判断问题在空格压缩逻辑。</p>
+<p>如果你看到 <code>3 passed</code>、<code>4 passed</code> 或更多通过数量，也不要马上跳过。你要确认两件事：第一，pytest 是否显示全部通过，没有失败或错误；第二，测试数量是否和你实际写下的测试数量一致。Claude 有时会多写一两个合理测试，只要它们仍然符合 <code>spec.md</code>，就不需要为了凑成固定数字而删除。反过来，如果你明明写了 4 个测试，却只看到 3 个通过，说明可能有一个测试没有被 pytest 识别，比如函数名没有以 <code>test_</code> 开头。</p>
+<p>读输出是一种工程能力。你读得越准确，和 Claude 的对话就越短、越清楚、越有结果。</p>
+<h3 id="第-11-步-把-claude-当副驾驶-而不是自动驾驶">第 11 步：把 Claude 当副驾驶，而不是自动驾驶</h3>
+<p>本节要求你启动 <code>Claude Code CLI</code>，但不是为了让 Claude 全程替你做。你要练习一种更健康的协作方式：Claude 是副驾驶，你仍然是驾驶者。</p>
+<p>副驾驶可以帮你看地图。比如你把 <code>spec.md</code> 发给 Claude，让它检查规格是否清楚。它可能提醒你“空字符串应该返回什么”还没写清楚。这个反馈很有价值，因为它帮你发现规格空洞。</p>
+<p>副驾驶可以帮你检查仪表盘。比如测试失败时，你把完整报错给 Claude，让它解释失败原因。它可以告诉你这是缺少模块、断言失败，还是语法错误。这样你不会在错误类型之间乱猜。</p>
+<p>副驾驶也可以帮你解释路线。比如测试通过后，你让 Claude 解释 <code>strip()</code>、<code>split()</code>、<code>join()</code>，它能把一行代码拆成容易理解的步骤。但你不能只停留在“Claude 解释过了”。你还要自己用一句话复述：先去掉前后空格，再按空白切分，再用单个空格重新连接。</p>
+<p>自动驾驶式使用 Claude 的表现是：你说“帮我完成这个练习”，然后复制它所有输出。
+副驾驶式使用 Claude 的表现是：你每次只给一个小目标，并且要求它解释原因、控制范围、不要改无关内容。本课程推荐后一种。</p>
+<h3 id="第-12-步-把本节实验收干净">第 12 步：把本节实验收干净</h3>
+<p>进入下一节之前，请确认这个实验目录保持简单。<code>vibecoding-method-lab/</code> 里理想情况下只有这些文件：</p>
+<pre><code class="language-text">spec.md
+test_task_title.py
+task_title.py
+review_note.md
+</code></pre>
+<p>如果 Claude 额外创建了很多文件，比如 <code>app.py</code>、<code>requirements.txt</code>、<code>database.py</code>、<code>templates/</code>，请先不要带着这些文件进入下一节。它们说明本节范围已经被扩展了。你可以保留作为对比，但要在笔记里写清楚：这些不是本节要求的产物。</p>
+<p>这一点很重要，因为后面 <code>02</code> 会创建正式项目 <code>task-vibe/</code>。正式项目会有 FastAPI、SQLite、Jinja2、页面和接口。</p>
+<p>最好的状态是：<code>01</code> 很小，但你完整经历了方法；<code>02</code> 才正式变大，但你已经知道如何控制节奏。</p>
+<h3 id="第-13-步-用自己的话讲一遍">第 13 步：用自己的话讲一遍</h3>
+<p>最后，请不要只把文件留在目录里。你要尝试用自己的话讲一遍这个实验。这个动作很像课堂上的“讲给同桌听”，但它对自学尤其重要。因为你能不能讲出来，通常比你能不能复制代码更能说明是否学会。</p>
+<p>你可以按下面顺序讲：</p>
+<p>第一，我先创建了 <code>vibecoding-method-lab/</code>，因为本节只是方法实验，不是正式项目。第二，我创建 <code>.venv</code> 并安装 <code>pytest</code>，因为本节要运行测试。第三，我在这个目录里启动 <code>Claude Code CLI</code>，并告诉它本节只练一个小函数，不做 FastAPI、数据库和页面。第四，我先写 <code>spec.md</code>，用 <code>SDD</code> 固定函数目标和边界。第五，我写 <code>test_task_title.py</code>，先运行失败测试，体验 <code>TDD</code> 的 Red。第六，我写 <code>task_title.py</code> 的最小实现，再运行测试看到通过，体验 Green。第七，我新增一个很小的测试，观察当前实现是否已经覆盖这个行为。第八，我写 <code>review_note.md</code>，把规格、测试、实现和过度设计检查讲清楚。</p>
+<p>如果你能这样讲出来，说明你不是只完成了一个函数，而是理解了一套工作流。后面做全栈项目时，你会反复使用这套语言：先说边界，再定义验证，再小步实现，再解释和复盘。</p>
+<p>如果你讲不出来，也不要急着进入 <code>02</code>。回到刚才的文件，一个一个看：<code>spec.md</code> 说明做什么，<code>test_task_title.py</code> 说明怎么证明它对，<code>task_title.py</code> 说明最小实现，<code>review_note.md</code> 说明你学到了什么。把这四个文件串起来，就是本节真正的学习成果。</p>
+<h2 id="输入输出对照">输入输出对照</h2>
+<table>
+<thead>
+<tr>
+<th>输入</th>
+<th>预期输出</th>
+<th>学生要比较什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mkdir vibecoding-method-lab &amp;&amp; cd vibecoding-method-lab</code></td>
+<td>当前目录变成 <code>vibecoding-method-lab</code></td>
+<td>是否把方法实验和正式项目目录分开。</td>
+</tr>
+<tr>
+<td><code>python -m venv .venv &amp;&amp; source .venv/bin/activate &amp;&amp; pip install pytest</code></td>
+<td>当前目录出现 <code>.venv</code>，并且 <code>pytest --version</code> 能显示版本号</td>
+<td>是否知道 <code>pytest</code> 来自本节虚拟环境。</td>
+</tr>
+<tr>
+<td><code>claude</code></td>
+<td>在当前目录启动 <code>Claude Code CLI</code></td>
+<td>是否在正确目录内启动，而不是脱离项目上下文。</td>
+</tr>
+<tr>
+<td><code>pytest test_task_title.py</code>（实现前）</td>
+<td>测试失败，常见原因是缺少 <code>task_title.py</code></td>
+<td>是否真正经历了 TDD 的 Red 阶段。</td>
+</tr>
+<tr>
+<td><code>pytest test_task_title.py</code>（实现后）</td>
+<td>至少 3 个基础测试全部通过；如果有额外测试，也必须全部通过且仍在规格范围内</td>
+<td>是否进入 Green 阶段，并确认行为符合预期。</td>
+</tr>
+<tr>
+<td><code>normalize_task_title("  学习   Claude Code  ")</code></td>
+<td><code>"学习 Claude Code"</code></td>
+<td>是否理解输入如何被整理成稳定输出。</td>
+</tr>
+<tr>
+<td>Review 提示词</td>
+<td>一份只关注规格、测试、实现、过度设计的反馈</td>
+<td>是否让 Claude 做聚焦 Review，而不是扩展项目。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="验收标准">验收标准</h2>
+<p>运行或检查：</p>
+<pre><code class="language-bash">pwd
+pytest --version
+pytest test_task_title.py
+</code></pre>
+<p>通过标准：</p>
+<ul>
+<li>你创建了 <code>vibecoding-method-lab/</code>，并知道它不是正式项目目录。</li>
+<li>你创建并激活 <code>.venv</code>，安装了 <code>pytest</code>，并确认 <code>pytest --version</code> 可以显示版本号。</li>
+<li>你已经在该目录内启动过 <code>Claude Code CLI</code>，并说明本节只练小函数。</li>
+<li>你写出 <code>spec.md</code>，并能说清本次做什么、不做什么。</li>
+<li>你先运行过失败测试，再写最小实现让测试通过。</li>
+<li><code>pytest test_task_title.py</code> 至少让 3 个基础测试全部通过；如果有额外测试，它们也仍在 <code>spec.md</code> 范围内并且全部通过。</li>
+<li>你写了 <code>review_note.md</code>，能解释 SDD、TDD、小步迭代和 Review。</li>
+<li>你知道下一节 <code>02</code> 才会创建正式全栈项目目录 <code>task-vibe/</code>。</li>
+</ul>
+<p>需要停下处理：</p>
+<ul>
+<li>如果你跳过失败测试，直接复制最终代码，先回到 Red 阶段重跑。</li>
+<li>如果你把 FastAPI、SQLite、Jinja2 或 <code>task-vibe/</code> 提前引入本节，先收回到小函数实验范围。</li>
+<li>如果你只看到测试通过，却讲不清 <code>spec.md</code>、<code>test_task_title.py</code>、<code>task_title.py</code>、<code>review_note.md</code> 各自作用，先回到文件重新复述。</li>
+</ul>
+<h2 id="常见卡点">常见卡点</h2>
+<ul>
+<li>忘记激活 <code>.venv</code>，导致 <code>pytest</code> 找不到。</li>
+<li>把本节实验目录和下一节正式项目目录混在一起。</li>
+<li>让 Claude 一次生成太多文件，超出小函数实验范围。</li>
+<li>只看见测试通过，却没有写 Review 笔记。</li>
+</ul>
+      </article>
+      <footer class="footer">Created by Walter and Codex at 2026-06-10 00:01.</footer>
+    </main>
+  </div>
+  <script src="../assets/reader.js"></script>
+</body>
+</html>
